@@ -1,0 +1,169 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: warehouse
+data:
+  log4j.properties: |-
+    log4j.rootLogger=DEBUG, stdout
+    # Console output...
+    log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+    log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+    log4j.appender.stdout.layout.ConversionPattern=%5p [%t] - %m%n
+  file.properties: |-
+    filepath=/app/upload
+  application.yml: |-
+    #配置数据源
+    spring:
+      datasource:
+        druid:
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: jdbc:mysql://mysql:3306/warehouse?useUnicode=true&characterEncoding=utf8&useSSL=true&serverTimezone=UTC&useSSL=false
+          username: root
+          password: root
+          max-active: 20
+          max-wait: 5000
+          initial-size: 1
+          filters: stat,log4j,wall
+          validation-query: SELECT 'X'   #验证连接
+          enable: true
+        #监控配置
+          stat-view-servlet:
+            enabled: true
+            login-username: root
+            login-password: 123456
+            url-pattern: /druid/*
+
+      servlet:
+          multipart:
+            max-file-size: 1MB
+            max-request-size: 10MB
+
+      #thymeleaf的配置
+      thymeleaf:
+        cache: false
+        enabled: true
+
+      jackson:
+        date-format: yyyy-MM-dd HH:mm:ss
+        time-zone: GMT+8
+
+    #配置mybatisplus
+    mybatis-plus:
+      mapper-locations: classpath*:mapper/**/*Mapper.xml
+      global-config:
+        db-config:
+          id-type: auto
+      configuration:
+        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+    #shiro的配置
+    shiro:
+      hash-algorithm-name: md5
+      hash-iterations: 2
+      anon-urls:
+      - /index.html*
+      - /sys/toLogin*
+      - /login/login*
+      - /login/getCode
+      - /resources/**
+      login-url: /index.html
+      log-out-url: /login/logout*
+      authc-ulrs:
+      - /**
+
+    #修改端口号为8088
+    server:
+      port: 8088
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: warehouse
+spec:
+  selector:
+    app: warehouse
+  ports:
+    - name: http
+      port: 8088
+      targetPort: 8088
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: warehouse-vol
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 10G
+  storageClassName: "{{ .Values.storageClassName }}"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: warehouse
+  labels:
+    app: warehouse
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: warehouse
+  template:
+    metadata:
+      labels:
+        app: warehouse
+    spec:
+      volumes:
+        - name: warehouse-vol
+          persistentVolumeClaim:
+            claimName: warehouse-vol
+        - name: warehouse
+          configMap:
+            name: warehouse
+      containers:
+        - name: warehouse
+          image: "{{ .Values.hub }}:{{ .Values.tag }}"
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: warehouse-vol
+              mountPath: /app/upload
+            - name: warehouse
+              mountPath: /app/log4j.properties
+              subPath: log4j.properties
+            - name: warehouse
+              mountPath: /app/file.properties
+              subPath: file.properties
+            - name: warehouse
+              mountPath: /app/application.yml
+              subPath: application.yml
+          ports:
+            - name: http
+              containerPort: 8088
+              protocol: TCP
+          livenessProbe:
+            initialDelaySeconds: 90
+            periodSeconds: 5
+            timeoutSeconds: 5
+            tcpSocket:
+              port: 8088
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            tcpSocket:
+              port: 8088
+          resources:
+            limits:
+              cpu: "2"
+              memory: "1Gi"
+            requests:
+              cpu: "5m"
+              memory: "512Mi"
+          env:
+            - name: TZ
+              value: "Asia/Shanghai"

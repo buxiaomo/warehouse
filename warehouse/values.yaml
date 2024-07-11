@@ -1,0 +1,10 @@
+# Default values for warehouse.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+hub: registry:5000/ruoyi
+tag: v3.6.4
+
+storageClassName: "nfs-client"

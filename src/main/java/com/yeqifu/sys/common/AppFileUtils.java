@@ -36,12 +36,13 @@ public class AppFileUtils {
         if(null!=property) {
             UPLOAD_PATH=property;
         }
+        System.out.println(UPLOAD_PATH);
     }
 
     /**
      * 根据文件老名字得到新名字
      * @param oldName 文件老名字
-     * @return 新名字由32位随机数加图片后缀组成
+     * @return 新名字由32位随机数加System.out.println(UPLOAD_PATH);图片后缀组成
      */
     public static String createNewFileName(String oldName) {
         //获取文件名后缀
