@@ -21,23 +21,23 @@ public class AppFileUtils {
     /**
      * 文件上传的保存路径  默认值
      */
-    public static String UPLOAD_PATH="G:/upload/";
+    public static String UPLOAD_PATH="/app/upload";
 
-    static {
-        //通过反射的方式，读取配置文件的存储地址
-        InputStream stream = AppFileUtils.class.getClassLoader().getResourceAsStream("file.properties");
-        Properties properties=new Properties();
-        try {
-            properties.load(stream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        String property = properties.getProperty("filepath");
-        if(null!=property) {
-            UPLOAD_PATH=property;
-        }
-        System.out.println(UPLOAD_PATH);
-    }
+    // static {
+    //     //通过反射的方式，读取配置文件的存储地址
+    //     InputStream stream = AppFileUtils.class.getClassLoader().getResourceAsStream("file.properties");
+    //     Properties properties=new Properties();
+    //     try {
+    //         properties.load(stream);
+    //     } catch (IOException e) {
+    //         e.printStackTrace();
+    //     }
+    //     String property = properties.getProperty("filepath");
+    //     if(null!=property) {
+    //         UPLOAD_PATH=property;
+    //     }
+    //     System.out.println(UPLOAD_PATH);
+    // }
 
     /**
      * 根据文件老名字得到新名字
