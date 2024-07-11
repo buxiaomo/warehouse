@@ -8,7 +8,7 @@ pipeline {
         PROJECT_ENV = "dev"
 
         REPOSITORY_AUTH = "gitlab"
-        REPOSITORY_URL = "https://github.com/yeqifu/warehouse.git"
+        REPOSITORY_URL = "https://github.com/buxiaomo/warehouse.git"
 
         REGISTRY_HOST = "172.16.115.11:5000"
     }
